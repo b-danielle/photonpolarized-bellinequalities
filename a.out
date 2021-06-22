@@ -1,0 +1,118 @@
+c     este programa simula la correlaci'on de pares de fotones
+c     es una versi'on de entangledv.f m'as sencilla.
+      real aps(16),apt(16),c(16),s(100000)
+      integer nbe(16)
+      complex i,ap,uno
+      open(unit=20,file='angbell.dat')
+      open(unit=21,file='nolocal')
+      NI=8000
+      NE=100
+      i=(0,1)
+      uno=(1,0)
+      pi=3.14159265359
+      u2=1./sqrt(2.)
+      pi2=2.*pi
+C***************VARIADOR-1*************************      
+      
+      th=pi/4.+PI/18.                  !desvalance de polarizaciones
+      
+C***************VARIADOR-1*************************      
+ccc   ANGULOS DE BELL
+      do ii=1,16
+         read(20,*) as,at
+         aps(ii)=pi2*as/360.
+         apt(ii)=pi2*at/360.
+         end do
+ccc   ANGULOS DE BELL      
+ccc  INICIAMOS UN LOOP PARA VARIAR LA FASE
+c     do nph=0,360
+c         nph=0
+c         aphi=float(nph)
+c         phi=pi2*(aphi)/360.           
+c
+         sp=0.0
+      do nexp=1,NE   !NUMERO DE EXPERIMENTOS
+         do nb=1,16
+CC*********************VARIADOR0***********************
+            sig1=rand(0)
+            if(sig1.ge.0) then
+               aps(nb)=aps(nb)+pi/60.
+               else
+                  aps(nb)=aps(nb)-pi/60.
+               endif
+            sig2=rand(0)
+            if(sig2.ge.0) then
+               apt(nb)=apt(nb)+pi/60.
+               else
+                  apt(nb)=apt(nb)-pi/60.
+               endif               
+C***************VARIADOR0****************************
+C***************VARIADOR-2***************************
+C     variacion en el numero de coincidencias                
+      rnn=rand(0)
+      if(rnn.ge.0.5) then         
+         N=NI+int(500.*rnn)
+      else
+         N=NI-int(500.*rnn)
+         endif
+C***************VARIADOR-2**************************** 
+               
+      c(nb)=0.0
+      do j=1,N
+CC************************VARIADOR1*************
+         ra=rand(0)
+         if(ra.ge.0.5) then
+         aphi=5*ra
+      else
+         aphi=-5*ra
+      endif  
+         phi=pi2*(50.+aphi)/360.    
+CC************************VARIADOR1**************         
+
+         ap=cos(th)*cos(aps(nb))*cos(apt(nb))+
+     1    exp(i*phi)*sin(th)*sin(aps(nb))*sin(apt(nb))         
+c         ap=u2*(cos(aps(nb))*cos(apt(nb))+exp(i*phi)*sin(aps(nb))*
+c     1        sin(apt(nb)))
+c         ap=u2*(cos(aps(nb))*sin(apt(nb))+exp(i*phi)*sin(aps(nb))*
+c     1    cos(apt(nb)))         
+
+c     vamos sumando las coincidencias.
+         c(nb)=c(nb)+ap*conjg(ap)         
+         end do
+         nbe(nb)=int(c(nb))
+      end do
+c     INICIA  LA PRUEBA DE BELL
+      sum1=nbe(1)+nbe(2)+nbe(3)+nbe(4)
+      sum2=nbe(5)+nbe(6)+nbe(7)+nbe(8)
+      sum3=nbe(9)+nbe(10)+nbe(11)+nbe(12)
+      sum4=nbe(13)+nbe(14)+nbe(15)+nbe(16)
+
+      numer1=nbe(1)+nbe(2)-nbe(3)-nbe(4)
+      numer2=nbe(5)+nbe(6)-nbe(7)-nbe(8)
+      numer3=nbe(9)+nbe(10)-nbe(11)-nbe(12)   
+      numer4=nbe(13)+nbe(14)-nbe(15)-nbe(16)
+
+      par1=numer1/sum1
+      par2=numer2/sum2
+      par3=numer3/sum3
+      par4=numer4/sum4
+      s(nexp)=par1-par2+par3+par4
+      sp=sp+s(nexp)/float(NE)
+      write(21,*) nexp,s(nexp)
+c      end do
+c     TERMINA LA PRUEBA DE BELL
+      end do                    !numero de experimentos
+C     DESVIACION ESTANDAR
+      v=0.0
+      do ides=1,NE
+         v=v+(sp-s(ides))**2./float(NE)
+      end do
+      sigs=sqrt(v)
+      write(*,*) 'prmedio Bell,s=',sp,'+-',sigs      
+         
+      
+      end
+         
+         
+         
+         
